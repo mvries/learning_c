@@ -3,5 +3,5 @@
 
 // Function prototype for make random array
 int* make_random_array(int array_length);
-p
+
 #endif /* ARRAY_UTILS_H */
