@@ -1,7 +1,9 @@
-#ifndef ARRAY_UTILS_H
-#define ARRAY_UTILS_H
+#ifndef ARRAY_UTILS_H_
+#define ARRAY_UTILS_H_
 
 // Function prototype for make random array
 int* make_random_array(int array_length);
 
-#endif /* ARRAY_UTILS_H */
+// Function to print the contents of the array
+void print_array(int* array, int  array_length);
+#endif /* ARRAY_UTILS_H_ */
