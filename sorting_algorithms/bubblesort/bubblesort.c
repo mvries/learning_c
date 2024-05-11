@@ -1,5 +1,5 @@
 /* This is the main function of the bubble sort algortihm */
-#include "array_utils.h"
+#include "bubblesort_utils.h"
 #include <time.h>
 #include <stdio.h>
 
@@ -21,12 +21,9 @@ int main()
         //perform bubblesort on the array
         for (int i = 0; i < search_index; i++)
         {
-	    int value_1 = array[i];
-	    int value_2 = array[i + 1];
-
-	    if (value_1 > value_2)
+	    if (compare_items(array, i, i + 1 ) == 1)
 	    {
-	        swap_items(array, i, i + 1);
+		swap_items(array, i, i + 1);
 	    }
         }
 	search_index -= 1;

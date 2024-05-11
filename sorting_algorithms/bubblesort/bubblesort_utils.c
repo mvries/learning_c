@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "array_utils.h"
+#include "bubblesort_utils.h"
 
 /* This function generates an array of random integers. */
 int* make_random_array(int array_length)
@@ -34,4 +34,16 @@ void swap_items(int* array, int position_1, int position_2)
     int temp = array[position_1];
     array[position_1] = array[position_2];
     array[position_2] = temp;
+}
+
+/*  This function is used to compare two items in an array */
+int compare_items(int* array, int position_1, int position_2)
+{
+    if  (array[position_1] > array[position_2])
+    {
+	return 1;
+    } else
+    {
+	return 0;
+    }
 }
