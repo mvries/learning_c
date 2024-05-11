@@ -12,7 +12,7 @@ int* make_random_array(int array_length)
 
     for(int i = 0; i < array_length; i++)
     {
-        int random_number = rand();
+        int random_number = rand() % (1000 + 1 - 1) + 1;
         array[i] = random_number;
     }
 
@@ -24,6 +24,14 @@ void print_array(int* array, int array_length)
 {
     for(int i = 0; i < array_length; i++)
     {
-	printf("%i", array[i]);
+	printf("%d\n", array[i]);
     }
+}
+
+/* This function swaps the position of two elements in an array */
+void swap_items(int* array, int position_1, int position_2)
+{
+    int temp = array[position_1];
+    array[position_1] = array[position_2];
+    array[position_2] = temp;
 }
