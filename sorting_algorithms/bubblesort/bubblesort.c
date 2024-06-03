@@ -65,16 +65,31 @@ int prepare_screen(SDL_Window** screen, SDL_Renderer** renderer, int window_heig
 
 
 /* Function to update the SDL point array based on the sorting array. */
-int update_SDL_array(SDL_Rect* SDL_rect_array, int* sorting_array, int array_size)
+int update_SDL_array(SDL_Rect* SDL_rect_array, int* sorting_array, int array_size, int window_width, int window_height)
 {
-  SDL_Rect new_point;
+  // The rectangles are scaled to the screen so that they are represented properly.
+  int scaled_height;
+  int scaled_width;
+  int scaled_x;
+  int scaled_y;
+  int padding = 20;
 
+  scaled_height = (window_height - padding * 2) / array_size;
+  scaled_width = (window_width - padding * 2) / array_size;
+
+  SDL_Rect new_point;
   for (int i = 0; i < array_size; i++)
     {
-      new_point.x = i;
-      new_point.y = sorting_array[i];
-      new_point.w = 5;
-      new_point.h = 5;
+      int old_x = i;
+      int old_y = sorting_array[i];
+
+      scaled_x = padding + (i * scaled_width) + (scaled_width / 2);
+      scaled_y = (window_height - (padding + scaled_height)) - (old_y * scaled_height) + (scaled_height / 2);
+      
+      new_point.x = scaled_x;
+      new_point.y = scaled_y;
+      new_point.w = scaled_height;
+      new_point.h = scaled_width;
       SDL_rect_array[i] = new_point;
     }
   return 0;
@@ -94,20 +109,20 @@ int draw_SDL_array(SDL_Rect* SDL_array, int array_size, SDL_Renderer* renderer)
 int main()
 {
   // Size of the array to be sorted:
-  int array_size = 100;
+  int array_size = 50;
 
   // Generate array to be sorted:
   int* sorting_array = make_sorting_array(array_size);
   
   // Prepare the screen:
-  int window_height = 680;
-  int window_width = 480;
+  int window_width = 820;
+  int window_height = 820;
   SDL_Window* screen;
   SDL_Renderer* renderer;
   
   prepare_screen(&screen, &renderer, window_height, window_width);
 
-  // Generate an array in heap to store the SDL points:
+  // Generate an array in heap to store the SDL rects:
   struct SDL_Rect
   {
     int x, y;
@@ -117,7 +132,7 @@ int main()
   SDL_Rect* SDL_rect_array = (SDL_Rect*)malloc(array_size * sizeof(SDL_Rect));
 
   // Update the array with the initial values:
-  update_SDL_array(SDL_rect_array, sorting_array, array_size);
+  update_SDL_array(SDL_rect_array, sorting_array, array_size, window_width, window_height);
 
   // Draw the initial points to the screen:
   draw_SDL_array(SDL_rect_array, array_size, renderer);
