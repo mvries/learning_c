@@ -83,8 +83,8 @@ int update_SDL_array(SDL_Rect* SDL_rect_array, int* sorting_array, int array_siz
       int old_x = i;
       int old_y = sorting_array[i];
 
-      scaled_x = padding + (i * scaled_width) + (scaled_width / 2);
-      scaled_y = (window_height - (padding + scaled_height)) - (old_y * scaled_height) + (scaled_height / 2);
+      scaled_x = padding + (i * scaled_width);
+      scaled_y = ((window_height - (padding + scaled_height)) - (old_y * scaled_height)) + scaled_height;
       
       new_point.x = scaled_x;
       new_point.y = scaled_y;
@@ -109,7 +109,7 @@ int draw_SDL_array(SDL_Rect* SDL_array, int array_size, SDL_Renderer* renderer)
 int main()
 {
   // Size of the array to be sorted:
-  int array_size = 50;
+  int array_size = 10;
 
   // Generate array to be sorted:
   int* sorting_array = make_sorting_array(array_size);
@@ -137,7 +137,7 @@ int main()
   // Draw the initial points to the screen:
   draw_SDL_array(SDL_rect_array, array_size, renderer);
 
-  SDL_Delay(10000);
+  SDL_Delay(8000);
   return 0;
 }
 
