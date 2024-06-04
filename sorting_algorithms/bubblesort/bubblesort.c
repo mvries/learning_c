@@ -1,4 +1,4 @@
-/* This script is a c implementation of the bubblesort algorithm. */
+/* This script is a c implementation of the bubblesort algorithm with 2D rendering. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -72,10 +72,10 @@ int update_SDL_array(SDL_Rect* SDL_rect_array, int* sorting_array, int array_siz
   int scaled_width;
   int scaled_x;
   int scaled_y;
-  int padding = 20;
+  int padding = 50;
 
-  scaled_height = (window_height - padding * 2) / array_size;
-  scaled_width = (window_width - padding * 2) / array_size;
+  scaled_height = (window_height - (padding * 2)) / array_size;
+  scaled_width = (window_width - (padding * 2)) / array_size;
 
   SDL_Rect new_point;
   for (int i = 0; i < array_size; i++)
@@ -84,7 +84,7 @@ int update_SDL_array(SDL_Rect* SDL_rect_array, int* sorting_array, int array_siz
       int old_y = sorting_array[i];
 
       scaled_x = padding + (i * scaled_width);
-      scaled_y = ((window_height - (padding + scaled_height)) - (old_y * scaled_height)) + scaled_height;
+      scaled_y = (window_height - padding) - (old_y * scaled_height);
       
       new_point.x = scaled_x;
       new_point.y = scaled_y;
@@ -99,9 +99,31 @@ int update_SDL_array(SDL_Rect* SDL_rect_array, int* sorting_array, int array_siz
 /* Function to draw the points in the SDL point array to the screen: */
 int draw_SDL_array(SDL_Rect* SDL_array, int array_size, SDL_Renderer* renderer)
 {
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderClear(renderer);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
   SDL_RenderDrawRects(renderer, SDL_array, array_size);
   SDL_RenderPresent(renderer);  
+}
+
+
+/* Function that performs a bubblesort sweep of an input array */
+int bubblesort_pass(int* sorting_array, int endpoint)
+{
+  for (int i = 1; i <= endpoint; i++)
+  {
+    int tmp;
+    int previous = sorting_array[i - 1];
+    int current = sorting_array[i];
+
+    if (previous > current)
+    {
+      tmp = current;
+      sorting_array[i] = previous;
+      sorting_array[i - 1] = tmp;
+    }
+  }
+  return 0;
 }
 
 
@@ -109,14 +131,14 @@ int draw_SDL_array(SDL_Rect* SDL_array, int array_size, SDL_Renderer* renderer)
 int main()
 {
   // Size of the array to be sorted:
-  int array_size = 10;
+  int array_size = 200;
 
   // Generate array to be sorted:
   int* sorting_array = make_sorting_array(array_size);
   
   // Prepare the screen:
-  int window_width = 820;
-  int window_height = 820;
+  int window_width = 900;
+  int window_height = 900;
   SDL_Window* screen;
   SDL_Renderer* renderer;
   
@@ -137,7 +159,45 @@ int main()
   // Draw the initial points to the screen:
   draw_SDL_array(SDL_rect_array, array_size, renderer);
 
-  SDL_Delay(8000);
+  // Main program loop
+  int run_program = 1;
+  while (run_program)
+    {
+      printf("Please choose one of the following: \n");
+      printf("1. input 'q' to quit.\n");
+      printf("2. input 's' to start.\n");
+      char user_input;
+      user_input = getchar();
+
+      if (user_input == 'q')
+      {
+	run_program = 0;
+	break;
+      }
+      else if (user_input == 's')
+      {
+	// main algorithm body is here.
+	int endpoint = array_size - 1;
+
+	for (int i = 0; i < array_size; i++ )
+	{
+	  bubblesort_pass(sorting_array, endpoint);
+	  update_SDL_array(SDL_rect_array, sorting_array, array_size, window_width, window_height);
+	  draw_SDL_array(SDL_rect_array, array_size, renderer);
+	  endpoint -= 1;
+	  SDL_Delay(100);
+	}
+	printf("Done!\n");
+	SDL_Delay(2000);
+	run_program = 0;
+      }
+      else
+      {
+	printf("Invalid input quiting... \n");
+	run_program = 0;
+      }
+    }
+
   return 0;
 }
 
