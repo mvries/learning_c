@@ -1,15 +1,25 @@
-//This C file contains the code for a falling Sand game that i made to learn C.
+/*
+This file contains the source code (C) for a falling sand game i made to learn c.
+When running the game, click and drag the mouse anywhere on the screen to spawn a particle.
 
-//Include statements for the various libraries that were used:
+Author: Martijn de Vries
+github: https://github.com/mvries
+*/
+
+//Include statements:
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <time.h>
 
 ///////////////////////////////////////////////////////// START OF SDL FUNCTIONS ///////////////////////////////////////////////////////////////////////
-
 // Here the functions that are responsible for setting up and interacting with the SDL library are shown:
 
-//The following function initiates the SDL library and the events module that is needed:
+/**
+ * @brief Initializes the SDL2 library.
+ *
+ * This function initializes the SDL2 library for video. 
+ * If initialization fails, it prints an error message and exits the program with a status of -1.
+*/
 void Init_SDL()
 {
   if((SDL_Init(SDL_INIT_VIDEO)==-1))
@@ -19,7 +29,16 @@ void Init_SDL()
     }
 }
 
-//This function creates a window to render the game on:
+/**
+ * @brief Creates an SDL window for the game.
+ *
+ * This function creates a new window with the specified title and dimensions.
+ * 
+ * @param window Pointer to the SDL_Window pointer where the created window will be stored.
+ * @param program_title Title of the window.
+ * @param width Width of the window.
+ * @param height Height of the window.
+ */
 void Create_SDL_window(SDL_Window** window, char* program_title, int width, int heigth)
 {
   *window = SDL_CreateWindow(program_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, heigth, SDL_WINDOW_OPENGL);
@@ -31,7 +50,14 @@ void Create_SDL_window(SDL_Window** window, char* program_title, int width, int 
     }
 }
 
-//This function sets up the SDL renderer:
+/**
+ * @brief Creates an SDL renderer.
+ *
+ * This function creates a renderer associated with the given window.
+ * 
+ * @param renderer Pointer to the SDL_Renderer pointer where the created renderer will be stored.
+ * @param window Pointer to the SDL_Window to render on.
+ */
 void Create_SDL_renderer(SDL_Renderer** renderer, SDL_Window** window)
 {
   *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
@@ -43,7 +69,13 @@ void Create_SDL_renderer(SDL_Renderer** renderer, SDL_Window** window)
     }
 }
 
-//This function is used to clear the SDL window (To white colour).
+/**
+ * @brief Clears the SDL window to a white color.
+ *
+ * This function sets the draw color to white and clears the current rendering target.
+ * 
+ * @param renderer Pointer to the SDL_Renderer.
+ */
 void Clear_SDL_window(SDL_Renderer** renderer)
 {
   SDL_SetRenderDrawColor(*renderer, 255, 255, 255, 255);
@@ -51,7 +83,23 @@ void Clear_SDL_window(SDL_Renderer** renderer)
   SDL_RenderPresent(*renderer);
 }
 
-//This function handels the keyboard input given to SDL:
+/**
+ * @brief Handles keyboard input from the user.
+ *
+ * This function processes keyboard events:
+ * - 'q' exits the game.
+ * - 'r' restarts the simulation.
+ * 
+ * @param event Pointer to the SDL_Event containing the key event.
+ * @param run_code Pointer to the variable controlling the game loop.
+ * @param renderer Pointer to the SDL_Renderer.
+ * @param particle_array Pointer to the array of particles.
+ * @param sand_particles Pointer to the count of current sand particles.
+ * @param max_heigth_array Pointer to the array of maximum heights for particles.
+ * @param window_width Pointer to the width of the window.
+ * @param max_sand_particles Pointer to the maximum number of sand particles.
+ * @param particle_size Pointer to the size of each particle.
+ */
 void Handle_SDL_key_input(SDL_Event* event, int* run_code, SDL_Renderer** renderer, SDL_Rect** particle_array, int* sand_particles, int** max_heigth_array, int* window_width, int* max_sand_particles, int* particle_size)
 {
   switch (event->key.keysym.sym)
@@ -72,7 +120,20 @@ void Handle_SDL_key_input(SDL_Event* event, int* run_code, SDL_Renderer** render
     }
 }
 
-//This function is responsible for handling the user mouse input:
+/**
+ * @brief Handles mouse input to place sand particles.
+ *
+ * This function updates the position of a sand particle based on the mouse's
+ * current position when clicked or dragged. If the mouse coordinates are
+ * even, it adjusts them to ensure proper placement.
+ * 
+ * @param mouse_x Pointer to the current X coordinate of the mouse.
+ * @param mouse_y Pointer to the current Y coordinate of the mouse.
+ * @param particle_array Pointer to the array of sand particles.
+ * @param sand_particles Pointer to the count of current sand particles.
+ * @param sand Pointer to the SDL_Rect representing the current sand particle.
+ * @param particle_size Pointer to the size of each particle.
+ */
 void Handle_SDL_mouse_input(int* mouse_x, int* mouse_y, SDL_Rect** particle_array, int* sand_particles, SDL_Rect* sand, int* particle_size)
 {  
   if ((*sand).y == *mouse_y)
@@ -100,7 +161,16 @@ void Handle_SDL_mouse_input(int* mouse_x, int* mouse_y, SDL_Rect** particle_arra
   *sand_particles += 1;
 }
 
-//This function draws the sand particles (SDL_Rects) to the screen:
+/**
+ * @brief Renders the sand particles to the screen.
+ *
+ * This function draws all sand particles stored in the particle array
+ * onto the SDL renderer and presents the updated frame.
+ * 
+ * @param particle_array Pointer to the array of sand particles.
+ * @param sand_particles Pointer to the count of current sand particles.
+ * @param renderer Pointer to the SDL_Renderer used for rendering.
+ */
 void Draw_sand_to_screen(SDL_Rect** particle_array, int* sand_particles, SDL_Renderer** renderer)
 {
   SDL_SetRenderDrawColor(*renderer, 255, 255, 255, 255); //White
@@ -114,6 +184,19 @@ void Draw_sand_to_screen(SDL_Rect** particle_array, int* sand_particles, SDL_Ren
 
 //////////////////////////////////////////////////////// START OF PHYSICS ENGINE CODE ////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Handles the physics for sand particles.
+ *
+ * This function updates the vertical position of each sand particle based
+ * on the maximum height allowed at its X coordinate. If a particle reaches
+ * the maximum height, it will lower the maximum height to make space for
+ * the next particle.
+ * 
+ * @param particle_array Pointer to the array of sand particles.
+ * @param max_heigth_array Pointer to the array of maximum heights for particles.
+ * @param sand_particles Pointer to the count of current sand particles.
+ * @param particle_size Pointer to the size of each particle.
+ */
 void Handle_sand_physics(SDL_Rect** particle_array, int** max_heigth_array, int* sand_particles, int* particle_size)
 {
   for (int i = 0; i < *sand_particles; i++)
@@ -131,6 +214,15 @@ void Handle_sand_physics(SDL_Rect** particle_array, int** max_heigth_array, int*
 
 /////////////////////////////////////////////////////// END OF PHYSICS ENGINE CODE ////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Main function to run the falling sand game.
+ *
+ * This function initializes SDL, creates a window and renderer, and enters
+ * the main loop to handle events and render the game state. It also manages
+ * memory for particles and cleans up before exiting.
+ * 
+ * @return Exit status code.
+ */
 int main()
 {
   //First the SDL library is initiated:
