@@ -75,6 +75,17 @@ void Handle_SDL_key_input(SDL_Event* event, int* run_code, SDL_Renderer** render
 //This function is responsible for handling the user mouse input:
 void Handle_SDL_mouse_input(int* mouse_x, int* mouse_y, SDL_Rect** particle_array, int* sand_particles, SDL_Rect* sand, int* particle_size)
 {  
+  if ((*sand).y == *mouse_y)
+    {
+      (*sand).y = 0;
+      return;
+    }
+  if ((*sand).x == *mouse_x)
+    {
+      (*sand).x = 0;
+      return;
+    }
+
   if (*mouse_x % 2 != 0)
     {
       *mouse_x -= 1;
@@ -85,7 +96,6 @@ void Handle_SDL_mouse_input(int* mouse_x, int* mouse_y, SDL_Rect** particle_arra
   (*sand).w = *particle_size;
   (*sand).h = *particle_size;
   
-  //Sand particle is added to the array at the right place:
   (*particle_array)[*sand_particles] = *sand;
   *sand_particles += 1;
 }
@@ -93,13 +103,10 @@ void Handle_SDL_mouse_input(int* mouse_x, int* mouse_y, SDL_Rect** particle_arra
 //This function draws the sand particles (SDL_Rects) to the screen:
 void Draw_sand_to_screen(SDL_Rect** particle_array, int* sand_particles, SDL_Renderer** renderer)
 {
-  //First we clear the renderer:
   SDL_SetRenderDrawColor(*renderer, 255, 255, 255, 255); //White
   SDL_RenderClear(*renderer);
-  //Then we draw the new image:
   SDL_SetRenderDrawColor(*renderer, 0, 0, 0, 255); //Black
   SDL_RenderDrawRects(*renderer, *particle_array, *sand_particles);
-  //Then we present (Back-buffering):
   SDL_RenderPresent(*renderer);
 }
 
@@ -145,7 +152,7 @@ int main()
 
   //Variables needed during the execution of the code:
   //Sand related variables:
-  int max_sand_particles = 10;
+  int max_sand_particles = 10000;
   int sand_particles = 0;
   int particle_size = 2;
 
@@ -206,7 +213,7 @@ int main()
 	}
       Handle_sand_physics(&particle_array, &max_heigth_array, &sand_particles, &particle_size);
       Draw_sand_to_screen(&particle_array, &sand_particles, &renderer);
-      SDL_Delay(16);
+      SDL_Delay(10);
     }
   free(max_heigth_array);
   free(particle_array);
