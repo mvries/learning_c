@@ -1,0 +1,58 @@
+Original sand physics code:
+
+//This function handles the sand particle physics of the simulation:
+void Handle_sand_physics(SDL_Rect** particle_array, int** max_heigth_array, int* sand_particles, int* particle_size)
+{
+  //  Heigth of the particle that is being evaluated:
+  int current_particle_heigth = 0;
+
+  // Array that holds the heigth values of the sand pile at the relevant x positions:
+  // Note that we take an overlap of one pixel on each side to check nearby particles.
+  int current_pile_heigth[*particle_size + 2];
+
+  // Max heigth of the sand pile within the heigth array:
+  int pile_heigth = 0;
+
+  int max_pile_heigth = 0;
+
+  // We loop over all the sand particles:
+  for (int i = 0; i < *sand_particles; i++)
+    {
+      //For each particle we check the heigth of the bottom:
+      current_particle_heigth = (*particle_array)[i].y + *particle_size;
+
+      //Now we have to check the heigth of the sand pile at the relevant x coordinates.
+      for (int j = -1; j <= *particle_size; j++)
+	{
+	  pile_heigth = (*max_heigth_array)[(*particle_array)[i].x + j];
+	  if (j == -1)
+	    {
+	      current_pile_heigth[0] = pile_heigth;
+	    }
+	  else if (j != -1)
+	    {
+	      current_pile_heigth[j] = pile_heigth;
+	    }
+
+	  if (pile_heigth > max_pile_heigth && j != -1 && j != *particle_size)
+	    {
+	      max_pile_heigth = pile_heigth;
+	    }
+	}
+      
+      //A sand particle will fall straigth down if there is space to do so:
+      if (current_particle_heigth < max_pile_heigth)
+	{
+	  (*particle_array)[i].y += 1;
+	}
+      //If another sand particle is encountered then something needs to happen...
+      else if (current_particle_heigth == max_pile_heigth)
+	{
+	  //If the pile to either side is higher or just as high the particle falls on top and stays put:
+	  if (current_pile_heigth[0] <= max_pile_heigth &&  current_pile_heigth[-1] <= max_pile_heigth)
+	    {
+	      
+	    }
+	}
+    }
+}
