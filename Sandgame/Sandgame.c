@@ -11,15 +11,20 @@ github: https://github.com/mvries
 #include <SDL2/SDL.h>
 #include <time.h>
 
+//Global variables:
+//Struct that stores SDL window + renderer related variables:
+typedef struct
+{
+  SDL_Window* window;
+  int window_width;
+  int window_height;
+  const char* program_title;
+  SDL_Renderer* renderer;
+} SDL_State;
+
 ///////////////////////////////////////////////////////// START OF SDL FUNCTIONS ///////////////////////////////////////////////////////////////////////
 // Here the functions that are responsible for setting up and interacting with the SDL library are shown:
 
-/**
- * @brief Initializes the SDL2 library.
- *
- * This function initializes the SDL2 library for video. 
- * If initialization fails, it prints an error message and exits the program with a status of -1.
-*/
 void Init_SDL()
 {
   if((SDL_Init(SDL_INIT_VIDEO)==-1))
@@ -29,58 +34,42 @@ void Init_SDL()
     }
 }
 
-/**
- * @brief Creates an SDL window for the game.
- *
- * This function creates a new window with the specified title and dimensions.
- * 
- * @param window Pointer to the SDL_Window pointer where the created window will be stored.
- * @param program_title Title of the window.
- * @param width Width of the window.
- * @param height Height of the window.
- */
-void Create_SDL_window(SDL_Window** window, char* program_title, int width, int heigth)
+void Create_SDL_window(SDL_State* state)
 {
-  *window = SDL_CreateWindow(program_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, heigth, SDL_WINDOW_OPENGL);
+  state->window = SDL_CreateWindow(state->program_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, state->window_width, state->window_height, SDL_WINDOW_OPENGL);
 
-  if (window == NULL)
+  if (state->window == NULL)
     {
       printf("Error, could not create the SDL_window");
       exit(-1);
     }
 }
 
-/**
- * @brief Creates an SDL renderer.
- *
- * This function creates a renderer associated with the given window.
- * 
- * @param renderer Pointer to the SDL_Renderer pointer where the created renderer will be stored.
- * @param window Pointer to the SDL_Window to render on.
- */
-void Create_SDL_renderer(SDL_Renderer** renderer, SDL_Window** window)
+void Create_SDL_renderer(SDL_State* state)
 {
-  *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
+  state->renderer = SDL_CreateRenderer(state->window, -1, SDL_RENDERER_ACCELERATED);
 
-  if (renderer == NULL)
+  if (state->renderer == NULL)
     {
       printf("Error, could not create the SDL_renderer");
       exit(-1);
     }
 }
 
-/**
- * @brief Clears the SDL window to a white color.
- *
- * This function sets the draw color to white and clears the current rendering target.
- * 
- * @param renderer Pointer to the SDL_Renderer.
- */
-void Clear_SDL_window(SDL_Renderer** renderer)
+void Clear_SDL_window(SDL_State* state)
 {
-  SDL_SetRenderDrawColor(*renderer, 255, 255, 255, 255);
-  SDL_RenderClear(*renderer);
-  SDL_RenderPresent(*renderer);
+  SDL_SetRenderDrawColor(state->renderer, 255, 255, 255, 255);
+  SDL_RenderClear(state->renderer);
+  SDL_RenderPresent(state->renderer);
+}
+
+//Master function to setup SDL and create window + renderer.
+void SDL_Setup(SDL_State* state)
+{
+  Init_SDL();
+  Create_SDL_window(state);
+  Create_SDL_renderer(state);
+  Clear_SDL_window(state);
 }
 
 /**
@@ -100,7 +89,7 @@ void Clear_SDL_window(SDL_Renderer** renderer)
  * @param max_sand_particles Pointer to the maximum number of sand particles.
  * @param particle_size Pointer to the size of each particle.
  */
-void Handle_SDL_key_input(SDL_Event* event, int* run_code, SDL_Renderer** renderer, SDL_Rect** particle_array, int* sand_particles, int** max_heigth_array, int* window_width, int* max_sand_particles, int* particle_size)
+void Handle_SDL_key_input(SDL_Event* event, int* run_code, SDL_Rect** particle_array, int* sand_particles, int** max_heigth_array, int* max_sand_particles, int* particle_size, SDL_State* state)
 {
   switch (event->key.keysym.sym)
     {
@@ -111,11 +100,11 @@ void Handle_SDL_key_input(SDL_Event* event, int* run_code, SDL_Renderer** render
       *sand_particles = 0;
       memset(*particle_array, 0, *max_sand_particles * sizeof(SDL_Rect));
 
-       for (int i = 0; i < *window_width; i++)
+       for (int i = 0; i < state->window_width; i++)
 	 {
-	   (*max_heigth_array)[i] = *window_width - *particle_size;
+	   (*max_heigth_array)[i] = state->window_width - *particle_size;
 	 }
-      Clear_SDL_window(renderer);
+      Clear_SDL_window(state);
       break;
     }
 }
@@ -171,13 +160,13 @@ void Handle_SDL_mouse_input(int* mouse_x, int* mouse_y, SDL_Rect** particle_arra
  * @param sand_particles Pointer to the count of current sand particles.
  * @param renderer Pointer to the SDL_Renderer used for rendering.
  */
-void Draw_sand_to_screen(SDL_Rect** particle_array, int* sand_particles, SDL_Renderer** renderer)
+void Draw_sand_to_screen(SDL_Rect** particle_array, int* sand_particles, SDL_State* state)
 {
-  SDL_SetRenderDrawColor(*renderer, 255, 255, 255, 255); //White
-  SDL_RenderClear(*renderer);
-  SDL_SetRenderDrawColor(*renderer, 0, 0, 0, 255); //Black
-  SDL_RenderDrawRects(*renderer, *particle_array, *sand_particles);
-  SDL_RenderPresent(*renderer);
+  SDL_SetRenderDrawColor(state->renderer, 255, 255, 255, 255); //White
+  SDL_RenderClear(state->renderer);
+  SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255); //Black
+  SDL_RenderDrawRects(state->renderer, *particle_array, *sand_particles);
+  SDL_RenderPresent(state->renderer);
 }
 
 ///////////////////////////////////////////////////////// END OF SDL FUNCTIONS ///////////////////////////////////////////////////////////////////////
@@ -214,33 +203,18 @@ void Handle_sand_physics(SDL_Rect** particle_array, int** max_heigth_array, int*
 
 /////////////////////////////////////////////////////// END OF PHYSICS ENGINE CODE ////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Main function to run the falling sand game.
- *
- * This function initializes SDL, creates a window and renderer, and enters
- * the main loop to handle events and render the game state. It also manages
- * memory for particles and cleans up before exiting.
- * 
- * @return Exit status code.
- */
 int main()
 {
-  //First the SDL library is initiated:
-  Init_SDL();
-
-  //Then we create an SDL window:
-  SDL_Window* window = NULL;
-  char* program_title = "Sandgame";
-  int window_width = 400;
-  int window_heigth = 400;
-  Create_SDL_window(&window, program_title, window_width, window_heigth);
-
-  //Then we create the renderer:
-  SDL_Renderer* renderer = NULL;
-  Create_SDL_renderer(&renderer, &window);
-
-  //Wiping the screen before the start of the program:
-  Clear_SDL_window(&renderer);
+  //Initiate SDL_State struct for the Sandgame:
+  SDL_State Sandgame_SDL_State;
+  Sandgame_SDL_State.window = NULL;
+  Sandgame_SDL_State.window_width = 400;
+  Sandgame_SDL_State.window_height = 400;
+  Sandgame_SDL_State.program_title = "Sandgame";
+  Sandgame_SDL_State.renderer = NULL;
+  
+  //Master call function that handles the initiating of SDL window and renderer:
+  SDL_Setup(&Sandgame_SDL_State);
 
   //Variables needed during the execution of the code:
   //Sand related variables:
@@ -256,12 +230,12 @@ int main()
 
   //Global arrays used by simulation:
   SDL_Rect* particle_array = (SDL_Rect*) malloc(max_sand_particles * sizeof(SDL_Rect));
-  int* max_heigth_array = (int*) malloc(window_width * sizeof(int));
+  int* max_heigth_array = (int*) malloc(Sandgame_SDL_State.window_width * sizeof(int));
 
   //We initiate the height array so that particles drop to the bottom at first:
-  for (int i = 0; i < window_width; i++)
+  for (int i = 0; i < Sandgame_SDL_State.window_width; i++)
     {
-      max_heigth_array[i] = window_heigth - particle_size;
+      max_heigth_array[i] = Sandgame_SDL_State.window_height - particle_size;
     }
   
   //Main loop of the sandgame:
@@ -277,7 +251,7 @@ int main()
 	  switch (event.type)
 	    {
 	    case SDL_KEYDOWN:
-	      Handle_SDL_key_input(&event, &run_code, &renderer, &particle_array, &sand_particles, &max_heigth_array, &window_width, &max_sand_particles, &particle_size);
+	      Handle_SDL_key_input(&event, &run_code, &particle_array, &sand_particles, &max_heigth_array, &max_sand_particles, &particle_size, &Sandgame_SDL_State);
 	      break;
 	    case SDL_MOUSEBUTTONDOWN:
 	      if (event.button.button == SDL_BUTTON_LEFT && sand_particles < max_sand_particles)
@@ -304,7 +278,7 @@ int main()
 	    }
 	}
       Handle_sand_physics(&particle_array, &max_heigth_array, &sand_particles, &particle_size);
-      Draw_sand_to_screen(&particle_array, &sand_particles, &renderer);
+      Draw_sand_to_screen(&particle_array, &sand_particles, &Sandgame_SDL_State);
       SDL_Delay(10);
     }
   free(max_heigth_array);
